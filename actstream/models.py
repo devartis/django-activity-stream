@@ -31,7 +31,8 @@ class Follow(models.Model):
     actor_only = models.BooleanField("Only follow actions where the object is "
         "the target.", default=True)
     started = models.DateTimeField(default=now)
-    objects = FollowManager()
+
+    objects = actstream_settings.get_follow_manager()
 
     class Meta:
         unique_together = ('user', 'content_type', 'object_id')

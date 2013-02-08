@@ -23,6 +23,14 @@ def get_action_manager():
     a, j = mod.split('.'), lambda l: '.'.join(l)
     return getattr(__import__(j(a[:-1]), {}, {}, [a[-1]]), a[-1])()
 
+def get_follow_manager():
+    """
+    Returns the class of the action manager to use from ACTSTREAM_SETTINGS['FOLLOW_MANAGER']
+    """
+    mod = SETTINGS.get('FOLLOW_MANAGER', 'actstream.managers.FollowManager')
+    a, j = mod.split('.'), lambda l: '.'.join(l)
+    return getattr(__import__(j(a[:-1]), {}, {}, [a[-1]]), a[-1])()
+
 USE_PREFETCH = SETTINGS.get('USE_PREFETCH',
                             django.VERSION[0] == 1 and django.VERSION[1] >= 4)
 
