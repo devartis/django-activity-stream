@@ -122,10 +122,13 @@ class FollowManager(GFKManager):
         """
         Returns a list of User objects who are following the given actor (eg my followers).
         """
-        return [follow.user for follow in self.filter(
-            content_type=ContentType.objects.get_for_model(actor),
-            object_id=actor.pk
-        ).select_related('user')]
+        return [follow.user for follow in self.__followers_query(actor).select_related('user')]
+
+    def followers_count(self, actor):
+        """
+        Returns the number of User objects who are following the given actor (eg my followers).
+        """
+        return self.__followers_query(actor).count()
 
     def following(self, user, *models):
         """
@@ -133,9 +136,25 @@ class FollowManager(GFKManager):
         Items in the list can be of any model unless a list of restricted models are passed.
         Eg following(user, User) will only return users following the given user
         """
+        qs = self.__following_query(user, *models)
+        return [follow.follow_object for follow in qs.fetch_generic_relations()]
+
+    def following_count(self, user, *models):
+        """
+        Returns the number of actors that the given user is following (eg who im following).
+        """
+        return self.__following_query(user, *models).count()
+
+    def __followers_query(self, actor):
+        return self.filter(
+            content_type=ContentType.objects.get_for_model(actor),
+            object_id=actor.pk
+        )
+
+    def __following_query(self, user, *models):
         qs = self.filter(user=user)
         if len(models):
             qs = qs.filter(content_type__in=(
                 ContentType.objects.get_for_model(model) for model in models)
             )
-        return [follow.follow_object for follow in qs.fetch_generic_relations()]
+        return qs
